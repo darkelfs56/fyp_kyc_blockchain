@@ -6,11 +6,15 @@ export type { AggregatorV2V3Interface } from "./AggregatorV2V3Interface";
 export type { AggregatorV3Interface } from "./AggregatorV3Interface";
 export type { MockV3Aggregator } from "./MockV3Aggregator";
 export type { FundMe } from "./FundMe";
-export type { KYCUpload } from "./KYCUpload";
+export type { BankDetails } from "./BankDetails";
+export type { KYC } from "./KYC";
+export type { UserDetails } from "./UserDetails";
 
 export { AggregatorInterface__factory } from "./factories/AggregatorInterface__factory";
 export { AggregatorV2V3Interface__factory } from "./factories/AggregatorV2V3Interface__factory";
 export { AggregatorV3Interface__factory } from "./factories/AggregatorV3Interface__factory";
 export { MockV3Aggregator__factory } from "./factories/MockV3Aggregator__factory";
 export { FundMe__factory } from "./factories/FundMe__factory";
-export { KYCUpload__factory } from "./factories/KYCUpload__factory";
+export { BankDetails__factory } from "./factories/BankDetails__factory";
+export { KYC__factory } from "./factories/KYC__factory";
+export { UserDetails__factory } from "./factories/UserDetails__factory";

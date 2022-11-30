@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types"
 import verify from "../utils/verify"
 import { networkConfig, developmentChains } from "../helper-hardhat-config"
 
-const deployKYCUpload: DeployFunction = async function (
+const deployKYC: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   // @ts-ignore
@@ -20,21 +20,21 @@ const deployKYCUpload: DeployFunction = async function (
   //   ethUsdPriceFeedAddress = networkConfig[network.name].ethUsdPriceFeed!
   // }
   log("----------------------------------------------------")
-  log("Deploying KYCUpload and waiting for confirmations...")
-  const KYCUpload = await deploy("KYCUpload", {
+  log("Deploying KYC and waiting for confirmations...")
+  const KYC = await deploy("KYC", {
     from: deployer,
     args: [],
     log: true,
     // we need to wait if on a live network so we can verify properly
     waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
   })
-  log(`KYCUpload deployed at ${KYCUpload.address}`)
+  log(`KYC deployed at ${KYC.address}`)
   if (
     !developmentChains.includes(network.name) &&
     process.env.ETHERSCAN_API_KEY
   ) {
-    await verify(KYCUpload.address, [])
+    await verify(KYC.address, [])
   }
 }
-export default deployKYCUpload
-deployKYCUpload.tags = ["all", "KYCUpload"]
+export default deployKYC
+deployKYC.tags = ["all", "KYC"]
