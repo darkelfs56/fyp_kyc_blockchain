@@ -10,11 +10,8 @@ import { HardhatUserConfig } from "hardhat/config"
 
 import "./tasks/block-number"
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
+//Maybe need to use layer-2 chains or sidechains
+//Ex: Optimism, Polygon, Arbitrum
 
 const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY || ""
 const GOERLI_RPC_URL =
@@ -29,6 +26,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
+      // allowUnlimitedContractSize: true,
       chainId: 31337,
       // gasPrice: 130000000000,
     },
@@ -42,11 +40,23 @@ const config: HardhatUserConfig = {
     compilers: [
       {
         version: "0.8.9",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
       {
         version: "0.6.6",
       },
     ],
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
@@ -54,8 +64,8 @@ const config: HardhatUserConfig = {
   gasReporter: {
     enabled: true,
     currency: "USD",
-    outputFile: "gas-report.txt",
-    noColors: true,
+    // outputFile: "gas-report.txt",
+    noColors: false,
     // coinmarketcap: COINMARKETCAP_API_KEY,
   },
   namedAccounts: {
