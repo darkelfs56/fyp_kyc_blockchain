@@ -67,9 +67,9 @@ contract userDetails {
     string memory _homeAddress,
     string memory _dateOfBirth
   ) public onlyCreator {
-    name = _name;
-    homeAddress = _homeAddress;
-    dateOfBirth = _dateOfBirth;
+    if(bytes(_name).length > 0) {name = _name;}
+    if(bytes(_homeAddress).length > 0) {homeAddress = _homeAddress;}
+    if(bytes(_dateOfBirth).length > 0) {dateOfBirth = _dateOfBirth;}
   }
 
   function addKYCViewPermission(address bankAddress, uint bankId, string memory bankName) public onlyCreator {

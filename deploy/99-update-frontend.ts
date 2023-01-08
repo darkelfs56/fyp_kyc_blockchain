@@ -10,14 +10,15 @@ const FRONT_END_ABI_FILE = "../fyp_kyc/constants/abi.json"
 const updateFrontend = async function () {
   if (process.env.UPDATE_FRONT_END) {
     console.log("Updating frontend...")
-    updateContractAddresses()
-    updateAbi()
+    await updateContractAddresses()
+    await updateAbi()
   }
 }
 
 async function updateAbi() {
   const kyc = await ethers.getContract("KYC")
   fs.writeFileSync(FRONT_END_ABI_FILE, kyc.interface.format(ethers.utils.FormatTypes.json) as string)
+  console.log("abi has been updated")
 }
 
 async function updateContractAddresses() {
@@ -27,12 +28,14 @@ async function updateContractAddresses() {
   if (chainId in currentAddresses) {
     if (!currentAddresses[chainId].includes(kyc.address)) {
       currentAddresses[chainId].push(kyc.address)
+      console.log("Pushed a new address.")
     }
   } else {
     currentAddresses[chainId] = [kyc.address]
+    console.log("currentAddress actually exists")
   }
   fs.writeFileSync(FRONT_END_ADDRESSES_FILE, JSON.stringify(currentAddresses))
 }
 
 export default updateFrontend
-updateFrontend.tags = ["all", "frontend"]
+updateFrontend.tags = ["all", "frontend", "KYC"]

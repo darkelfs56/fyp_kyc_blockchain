@@ -34,9 +34,11 @@ import "./bankDetails.sol";
 contract KYC {
   address private owner;
   address[] private users;
-  mapping(address => uint) private userCount;
+  address[] private banks;
+  mapping(address => uint) private entityCount;
   mapping(address => userDetails) private registeredUser;
   mapping(address => bankDetails) private registeredBank;
+  kycBanks private allBanks;
 
   constructor() {
     owner = msg.sender;
@@ -47,8 +49,13 @@ contract KYC {
     userDetails.userBankAccountDetails[] userBankAccountDetailsArr;
   }
 
+  struct kycBanks {
+    address[] bankAddress;
+    string[] bankName;
+  }
+
   modifier userExists(address user) {
-    require(userCount[user] > 0, "User does not exist.");
+    require(entityCount[user] > 0, "User does not exist.");
     _;
   }
 
@@ -56,43 +63,51 @@ contract KYC {
     return owner;
   }
 
-  function getUserCount(address user) internal view returns (uint) {
-    return userCount[user];
+  function getEntityCount(address user) internal view returns (uint) {
+    return entityCount[user];
   }
 
-  function getOwnUserCount(address user) public view userExists(user) returns (uint) {
+  function getOwnEntityCount(address user) public view userExists(user) returns (uint) {
     require(msg.sender == user, "Only user.");
-    return userCount[user];
+    return entityCount[user];
   }
 
   function getUsers() public view returns (address[] memory) {
     return users;
   }
 
-  function modUsers(address user) internal {
-    require(userCount[user] == 0, "User exists.");
-    users.push(user);
-    userCount[user] = users.length;
+  function getBanks() view public returns (kycBanks memory) {
+    return allBanks;
+  }
+
+  function modUsers(address user, uint8 userType) internal {
+    require(entityCount[user] == 0, "User exists.");
+    require(userType == 1 || userType == 2, "Invalid mode value");
+    if (userType == 1) users.push(user);
+    else if (userType == 2) banks.push(user);
+    entityCount[user] = users.length + banks.length;
   }
 
   function addUsers(string memory name, string memory homeAddress, string memory dateOfBirth) public {
     require(bytes(name).length > 0, "Name is required.");
     require(bytes(homeAddress).length > 0, "Home address is required.");
     require(bytes(dateOfBirth).length > 0, "Date of birth is required.");
-    modUsers(msg.sender);
+    modUsers(msg.sender, 1);
     registeredUser[msg.sender] = new userDetails(msg.sender, name, homeAddress, dateOfBirth);
   }
 
   function addBanks(string memory name) public {
     require(bytes(name).length > 0, "Name is required.");
-    modUsers(msg.sender);
+    modUsers(msg.sender, 2);
     registeredBank[msg.sender] = new bankDetails(msg.sender, name);
+    allBanks.bankAddress.push(msg.sender);
+    allBanks.bankName.push(name);
   }
 
   function getPermissionedUserDetails(
     address user
   ) public view userExists(user) returns (address, string memory, string memory, string memory) {
-    return registeredUser[user].getUserDetails(msg.sender, getUserCount(msg.sender));
+    return registeredUser[user].getUserDetails(msg.sender, getEntityCount(msg.sender));
   }
 
   //viewSentKYC
@@ -111,35 +126,36 @@ contract KYC {
     string memory homeAddress,
     string memory dateOfBirth
   ) public userExists(msg.sender) {
-    require(bytes(name).length > 0, "Name is required.");
-    require(bytes(homeAddress).length > 0, "Home address is required.");
-    require(bytes(dateOfBirth).length > 0, "Date of birth is required.");
+    require(
+      bytes(name).length > 0 || bytes(homeAddress).length > 0 || bytes(dateOfBirth).length > 0,
+      "No data provided to changeUserDetails"
+    );
     registeredUser[msg.sender].changeUserDetails(name, homeAddress, dateOfBirth);
   }
 
   function sendViewPermission(address bankAddress, uint mode) public userExists(msg.sender) {
-    require(userCount[bankAddress] > 0, "Bank does not exist.");
+    require(entityCount[bankAddress] > 0, "Bank does not exist.");
     require(mode == 1 || mode == 2, "Invalid mode value.");
     string memory bankName = registeredBank[bankAddress].getBankName(bankAddress);
     if (mode == 1) {
       //sends user unique proof view access
-      registeredUser[msg.sender].sendUniqueProofAccess(bankAddress, getUserCount(bankAddress), bankName);
-      registeredBank[bankAddress].receiveKYCInfo(bankAddress, msg.sender, getUserCount(msg.sender), 1);
+      registeredUser[msg.sender].sendUniqueProofAccess(bankAddress, getEntityCount(bankAddress), bankName);
+      registeredBank[bankAddress].receiveKYCInfo(bankAddress, msg.sender, getEntityCount(msg.sender), 1);
     } else if (mode == 2) {
       //sends user KYC info view access
-      registeredUser[msg.sender].addKYCViewPermission(bankAddress, getUserCount(bankAddress), bankName);
-      registeredBank[bankAddress].receiveKYCInfo(bankAddress, msg.sender, getUserCount(msg.sender), 2);
+      registeredUser[msg.sender].addKYCViewPermission(bankAddress, getEntityCount(bankAddress), bankName);
+      registeredBank[bankAddress].receiveKYCInfo(bankAddress, msg.sender, getEntityCount(msg.sender), 2);
     }
   }
 
   function setUserUniqueProofApproval(address userAddress, bool uniqueProofApproval) public userExists(msg.sender) {
-    require(userCount[userAddress] > 0, "No user found.");
+    require(entityCount[userAddress] > 0, "No user found.");
     registeredUser[userAddress].setUniqueProofApproval(msg.sender, uniqueProofApproval);
     registeredBank[msg.sender].setUniqueProofApproval(msg.sender, userAddress, uniqueProofApproval);
   }
 
   function setUserKYCApprovals(address userAddress, bool KYCApproval) public userExists(msg.sender) {
-    require(userCount[userAddress] > 0, "No user found.");
+    require(entityCount[userAddress] > 0, "No user found.");
     registeredUser[userAddress].setKYCApproval(msg.sender, KYCApproval);
     registeredBank[msg.sender].setUserKYCApproval(msg.sender, userAddress, KYCApproval);
   }
@@ -155,7 +171,7 @@ contract KYC {
   function viewAllBankUserInfo(
     address bankAddress
   ) public view userExists(msg.sender) returns (bankDetails.userAccountDetails[] memory) {
-    require(userCount[bankAddress] > 0, "No bank found.");
+    require(entityCount[bankAddress] > 0, "No bank found.");
     return registeredBank[bankAddress].viewAllUserInfo(msg.sender);
   }
 
@@ -164,7 +180,7 @@ contract KYC {
   ) public view userExists(bankAddress) returns (userBankAccountDetails[] memory) {
     require(msg.sender == bankAddress, "Only bank.");
     address[] memory allBankUsers = registeredBank[msg.sender].getAllUserAccounts(msg.sender);
-    uint bankID = getUserCount(msg.sender);
+    uint bankID = getEntityCount(msg.sender);
     userBankAccountDetails[] memory allBankUserDetails = new userBankAccountDetails[](allBankUsers.length);
     for (uint i = 0; i < allBankUsers.length; i++) {
       address user = allBankUsers[i];

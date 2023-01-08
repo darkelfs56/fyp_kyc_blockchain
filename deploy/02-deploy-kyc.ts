@@ -10,15 +10,9 @@ const deployKYC: DeployFunction = async function (
   const { getNamedAccounts, deployments, network } = hre
   const { deploy, log } = deployments
   const { deployer } = await getNamedAccounts()
-  const chainId: number = network.config.chainId!
+  // const chainId: number = network.config.chainId!
+  console.log("network is: ", network.name)
 
-  // let ethUsdPriceFeedAddress: string
-  // if (chainId == 31337) {
-  //   const ethUsdAggregator = await deployments.get("MockV3Aggregator")
-  //   ethUsdPriceFeedAddress = ethUsdAggregator.address
-  // } else {
-  //   ethUsdPriceFeedAddress = networkConfig[network.name].ethUsdPriceFeed!
-  // }
   log("----------------------------------------------------")
   log("Deploying KYC and waiting for confirmations...")
   const KYC = await deploy("KYC", {
@@ -31,7 +25,7 @@ const deployKYC: DeployFunction = async function (
   log(`KYC deployed at ${KYC.address}`)
   if (
     !developmentChains.includes(network.name) &&
-    process.env.ETHERSCAN_API_KEY
+    network.etherscan?.apiKey
   ) {
     await verify(KYC.address, [])
   }

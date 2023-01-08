@@ -1,16 +1,18 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { assert, expect } from "chai"
+import { Contract } from "ethers"
 import { network, deployments, ethers, config } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
 import { KYC } from "../../typechain-types"
 
 describe("KYC", function () {
-  let kyc: KYC
+  let kyc: Contract
   let deployer: SignerWithAddress
   beforeEach(async () => {
     if (!developmentChains.includes(network.name)) {
       throw "You need to be on a development chain to run tests"
     }
+    console.log("Network is: ", network.name)
     const accounts = await ethers.getSigners()
     deployer = accounts[0]
     await deployments.fixture(["KYC"])
