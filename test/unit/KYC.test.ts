@@ -31,7 +31,7 @@ describe("KYC", function () {
       console.log("Hardhat config is: ", config.solidity.compilers[0].settings)
       const accounts = await ethers.getSigners()
       await kyc.connect(accounts[1]).addUsers("Muhammad Akmal bin Anuar", "lol", "22/3/2000")
-      const userCount = (await kyc.connect(accounts[1]).getOwnUserCount(accounts[1].address)).toNumber()
+      const userCount = (await kyc.connect(accounts[1]).getOwnEntityCount(accounts[1].address)).toNumber()
       assert.notEqual(userCount, 0)
     })
   })
